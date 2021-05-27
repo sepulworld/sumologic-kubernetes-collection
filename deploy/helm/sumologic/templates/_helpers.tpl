@@ -982,3 +982,32 @@ Example:
 {{- define "kubernetes.minor" -}}
 {{- print (regexFind "^\\d+" .Capabilities.KubeVersion.Minor) -}}
 {{- end -}}
+
+
+{{/*
+Return k8s.cluster.name for opentelemetry collector
+
+Example:
+
+{{ include "otelcol.k8s.cluster.name" . }}
+*/}}
+{{- define "otelcol.k8s.cluster.name" -}}
+{{- $otelcolService := include "sumologic.metadata.name.otelcol.service" . -}}
+{{ printf "%s.%s" $otelcolService .Release.Namespace }}
+{{- end -}}
+
+
+{{/*
+Returns list of namespaces to exclude
+
+Example:
+
+{{ include "fluentd.excludeNamespaces" . }}
+*/}}
+{{- define "fluentd.excludeNamespaces" -}}
+{{- $excludeNamespaceRegex := .Values.fluentd.logs.containers.excludeNamespaceRegex | quote -}}
+{{- if eq .Values.sumologic.collectionMonitoring false -}}
+  {{- $excludeNamespaceRegex = printf "%s|%s" .Release.Namespace .Values.fluentd.logs.containers.excludeNamespaceRegex | quote }}
+{{- end -}}
+{{ print $excludeNamespaceRegex }}
+{{- end -}}
